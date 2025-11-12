@@ -1,0 +1,16 @@
+
+1. Copy the files to your own directory.
+
+2. Modify inet.h to reflect the host you are currently logged into.
+   Also, modify the port numbers to be used to reduce the likelihood
+   of conflicting with another server.
+
+3. Compile the source code using the command: make
+
+4. Start the server directory in the background: ./directoryServer2 &
+
+5. Start the server with chat room name and listening port: ./chatServer2 "Example Name" <PortNumber>
+
+6. Start the client on the same or another host in the foreground: ./chatClient2
+
+7. Remember to kill the server before logging off.
