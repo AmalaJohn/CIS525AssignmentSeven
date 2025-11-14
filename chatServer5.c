@@ -184,6 +184,7 @@ int tls_write_safe(SSL *ssl, const char *buf, int len)
 
 
 int main(int argc, char **argv)
+{
 	if (argc != 3){
  		fprintf(stderr, "Must initialize with Chat Room Name and Port Number\n");
 		return EXIT_FAILURE;
@@ -230,10 +231,10 @@ int main(int argc, char **argv)
 	/*Acting like a client now*/
 
 	/* Set up the address of the server to be contacted. */
-	memset((char *) &serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family      = AF_INET;
-    serv_addr.sin_addr.s_addr = inet_addr(SERV_HOST_ADDR);    /* chat server bind address */
-    serv_addr.sin_port        = htons(CHAT_SERV_TCP_PORT);		/* hard-coded in inet.h */
+	memset((char *) &dir_addr, 0, sizeof(dir_addr));
+    dir_addr.sin_family      = AF_INET;
+    dir_addr.sin_addr.s_addr = inet_addr(SERV_HOST_ADDR);   /* directory server host (from inet.h) */
+    dir_addr.sin_port        = htons(SERV_TCP_PORT); 	/* hard-coded in inet.h */
 
 	/* Create a socket (an endpoint for communication). */
 	if ((dir_sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
