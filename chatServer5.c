@@ -10,6 +10,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/x509.h>
+#include <errno.h>
 
 #ifndef LIST_FOREACH_SAFE
 #define LIST_FOREACH_SAFE(var, head, field, tvar)               \
@@ -183,7 +184,8 @@ int tls_write_safe(SSL *ssl, const char *buf, int len)
 
 
 int main(int argc, char **argv)
-	if (argc != 		fprintf(stderr, "Must initialize with Chat Room Name and Port Number\n");
+	if (argc != 3){
+ 		fprintf(stderr, "Must initialize with Chat Room Name and Port Number\n");
 		return EXIT_FAILURE;
 	}
 
@@ -228,10 +230,10 @@ int main(int argc, char **argv)
 	/*Acting like a client now*/
 
 	/* Set up the address of the server to be contacted. */
-	memset((char *) &dir_addr, 0, sizeof(dir_addr));
-	dir_addr.sin_family			= AF_INET;
-	serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);	/* hard-coded in inet.h */
-	dir_addr.sin_port			= htons(SERV_TCP_PORT);			/* hard-coded in inet.h */
+	memset((char *) &serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family      = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr(SERV_HOST_ADDR);    /* chat server bind address */
+    serv_addr.sin_port        = htons(CHAT_SERV_TCP_PORT);		/* hard-coded in inet.h */
 
 	/* Create a socket (an endpoint for communication). */
 	if ((dir_sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -330,52 +332,45 @@ int main(int argc, char **argv)
 
 		/* Compute max_fd as you go */
 
-		if (select(max_fd+1, &readset, NULL, NULL, NULL) > 0) {
+		 int ready = select(max_fd + 1, &readset, NULL, NULL, NULL);
+        if (ready > 0) {
 
-			/* Check to see if our listening socket has a pending connection */
-		          if (FD_ISSET(sockfd, &readset)) {
-                                socklen_t clilen = sizeof(cli_addr);
-                                int newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-                                if (newsockfd < 0) {
-                                        perror("server: accept error");
-                                        continue;
-                                }
+            /* New incoming connection? */
+            if (FD_ISSET(sockfd, &readset)) {
+                socklen_t clilen = sizeof(cli_addr);
+                int newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+                if (newsockfd < 0) {
+                    perror("server: accept error");
+                } else {
+                    struct client *new_client = malloc(sizeof(struct client));
+                    if (new_client == NULL) {
+                        fprintf(stderr, "server: malloc error\n");
+                        close(newsockfd);
+                    } else {
+                        new_client->socketfd = newsockfd;
+                        new_client->username[0] = '\0';
 
-                                /* Allocate client struct */
-                                struct client *new_client = malloc(sizeof(struct client));
-                                if (new_client == NULL) {
-                                        fprintf(stderr, "server: malloc error\n");
-                                        close(newsockfd);
-                                        continue;
-                                }
+                        new_client->ssl = SSL_new(server_ctx);
+                        if (!new_client->ssl) {
+                            fprintf(stderr, "server: SSL_new failed\n");
+                            close(newsockfd);
+                            free(new_client);
+                        } else {
+                            SSL_set_fd(new_client->ssl, newsockfd);
 
-                                new_client->socketfd = newsockfd;
-                                new_client->username[0] = '\0';
-
-                                /* Wrap new client socket in TLS */
-                                new_client->ssl = SSL_new(server_ctx);
-                                if (!new_client->ssl) {
-                                        fprintf(stderr, "server: SSL_new failed\n");
-                                        close(newsockfd);
-                                        free(new_client);
-                                        continue;
-                                }
-                                SSL_set_fd(new_client->ssl, newsockfd);
-
-                                if (SSL_accept(new_client->ssl) <= 0) {
-                                        fprintf(stderr, "server: TLS handshake with client failed\n");
-                                        ERR_print_errors_fp(stderr);
-                                        SSL_free(new_client->ssl);
-                                        close(newsockfd);
-                                        free(new_client);
-                                        continue;
-                                }
-
+                            if (SSL_accept(new_client->ssl) <= 0) {
+                                fprintf(stderr, "server: TLS handshake with client failed\n");
+                                ERR_print_errors_fp(stderr);
+                                SSL_free(new_client->ssl);
+                                close(newsockfd);
+                                free(new_client);
+                            } else {
                                 LIST_INSERT_HEAD(&clients, new_client, entries);
+                            }
                         }
-				/* We can't immediately read(newsockfd) because we haven't asked
-				* select whether it's ready for reading yet */
-			}
+                    }
+                }
+            }
 			/* TODO: Check ALL your client sockets, e.g., using LIST_FOREACH */
 			/* clisockfd is used as an example socket -- we never populated it so
 			* it's invalid */
@@ -488,26 +483,32 @@ int main(int argc, char **argv)
                                                                                 if (other != entry1 && other->username[0] != '\0') {
                                                                                         tls_write_safe(other->ssl, msg, strnlen(msg, MAX));
                                                                                 }
-                                                                        }
-                                                                }
-                                                        }
-                                                }
-                                        }
-		else {
-			if (errno == EINTR) {
-				// Interrupted by a signal (like SIGINT), just restart loop
-				continue;
-			} else {
-				perror("select error");
-				break;
-			}
-		}
-	}
-	close(sockfd);
-	close(dir_sockfd);
-	SSL_CTX_free(server_ctx);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (ready < 0) {
+            if (errno == EINTR) {
+                continue;
+            } else {
+                perror("select error");
+                break;
+            }
+        }
+        /* ready == 0 should not happen (no timeout), ignore */
+    }
+
+    close(sockfd);
+    SSL_shutdown(dir_ssl);
+    SSL_free(dir_ssl);
+    close(dir_sockfd);
+    SSL_CTX_free(server_ctx);
     SSL_CTX_free(dir_ctx);
     EVP_cleanup();
 
+    return EXIT_SUCCESS;
 }
 
