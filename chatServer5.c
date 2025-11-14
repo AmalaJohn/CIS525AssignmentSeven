@@ -291,8 +291,8 @@ int main(int argc, char **argv)
 
 	/* Add SO_REUSEADDRR option to prevent address in use errors (modified from: "Hands-On Network
 	* Programming with C" Van Winkle, 2019. https://learning.oreilly.com/library/view/hands-on-network-programming/9781789349863/5130fe1b-5c8c-42c0-8656-4990bb7baf2e.xhtml */
-	int true = 1;
-	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (void *)&true, sizeof(true)) < 0) {
+	int reuse = 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
 		perror("server: can't set stream socket address reuse option");
 		return EXIT_FAILURE;
 	}
@@ -471,45 +471,56 @@ int main(int argc, char **argv)
                                                                         tls_write_safe(entry1->ssl, msg, strnlen(msg, MAX));
                                                                 }
                                                         }
-                                                        else if (strncmp(command, "MSG", 3) == 0) {
-                                                                if (entry1->username[0] == '\0') {
-                                                                        tls_write_safe(entry1->ssl,
-                                                                                       "ERROR: Must register username first.\n",
-                                                                                       strlen("ERROR: Must register username first.\n"));
-                                                                } else {
-                                                                        char msg[MAX];
-                                                                        snprintf(msg, MAX, "%.30s: %.60s\n", entry1->username, payload);
-                                                                        struct client *other;
-                                                                        LIST_FOREACH(other, &clients, entries) {
-                                                                                if (other != entry1 && other->username[0] != '\0') {
-                                                                                        tls_write_safe(other->ssl, msg, strnlen(msg, MAX));
-                                                                                }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else if (ready < 0) {
-            if (errno == EINTR) {
-                continue;
-            } else {
-                perror("select error");
-                break;
+							else if (strncmp(command, "MSG", 3) == 0) {
+    if (entry1->username[0] == '\0') {
+        tls_write_safe(entry1->ssl,
+                       "ERROR: Must register username first.\n",
+                       strlen("ERROR: Must register username first.\n"));
+    } else {
+
+        char msg[MAX];
+        snprintf(msg, MAX, "%.30s: %.60s\n", entry1->username, payload);
+
+        struct client *other;
+        LIST_FOREACH(other, &clients, entries) {
+            if (other != entry1 && other->username[0] != '\0') {
+                tls_write_safe(other->ssl, msg, strnlen(msg, MAX));
             }
         }
-        /* ready == 0 should not happen (no timeout), ignore */
     }
+}
 
-    close(sockfd);
-    SSL_shutdown(dir_ssl);
-    SSL_free(dir_ssl);
-    close(dir_sockfd);
-    SSL_CTX_free(server_ctx);
-    SSL_CTX_free(dir_ctx);
-    EVP_cleanup();
+/* End of processing for this client */
+}  // ← closes LIST_FOREACH_SAFE loop’s inner “if (FD_ISSET)” block
 
-    return EXIT_SUCCESS;
+} // ← closes LIST_FOREACH_SAFE loop
+
+} else if (ready < 0) {
+
+    if (errno == EINTR) {
+        continue;
+    } else {
+        perror("select error");
+        break;
+    }
+}
+
+/* select() == 0 will never happen because no timeout */
+} // ← closes the big for(;;) server loop
+
+
+/* ---------- Cleanup ---------- */
+
+close(sockfd);
+
+SSL_shutdown(dir_ssl);
+SSL_free(dir_ssl);
+close(dir_sockfd);
+
+SSL_CTX_free(server_ctx);
+SSL_CTX_free(dir_ctx);
+EVP_cleanup();
+
+return EXIT_SUCCESS;
 }
 
