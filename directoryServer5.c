@@ -116,7 +116,8 @@ int main(int argc, char **argv)
 	/* Bind socket to local address */
 	memset((char *) &serv_addr, 0, sizeof(serv_addr));
 	serv_addr.sin_family 		= AF_INET;
-	serv_addr.sin_addr.s_addr 	= inet_addr(SERV_HOST_ADDR);	/* hard-coded in inet.h */
+	serv_addr.sin_addr.s_addr 	= inet_addr(SERV_HOST_ADDR);
+	//serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);	/* hard-coded in inet.h */
 	serv_addr.sin_port			= htons(SERV_TCP_PORT);			/* hard-coded in inet.h */
 
 	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
@@ -254,7 +255,7 @@ int main(int argc, char **argv)
 									entry1->is_server = 1;
 									entry1->client_port = htons(port);
 									
-									fprintf(stderr, "📡 Registered chat server: %s at %s:%d\n",
+									fprintf(stderr, "Registered chat server: %s at %s:%d\n",
 										entry1->username,
 										inet_ntoa(entry1->client_ip),
 										port);
