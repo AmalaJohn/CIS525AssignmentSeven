@@ -86,16 +86,16 @@ int main(int argc, char **argv)
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
 
 	/* Load server cert and key */
-	if (SSL_CTX_use_certificate_file(ctx, "certs/directory_server.crt", SSL_FILETYPE_PEM) <= 0) {
+	if (SSL_CTX_use_certificate_file(ctx, "Directory_Server-cert.pem", SSL_FILETYPE_PEM) <= 0) {
 		ERR_print_errors_fp(stderr);
 		return EXIT_FAILURE;
 	}
-	if (SSL_CTX_use_PrivateKey_file(ctx, "certs/directory_server.key", SSL_FILETYPE_PEM) <= 0) {
+	if (SSL_CTX_use_PrivateKey_file(ctx, "Directory_Server-key.pem", SSL_FILETYPE_PEM) <= 0) {
 		ERR_print_errors_fp(stderr);
 		return EXIT_FAILURE;
 	}
 	/* Load CA (for thoroughness; not used for client auth here) */
-	if (!SSL_CTX_load_verify_locations(ctx, "certs/ca.crt", NULL)) {
+	if (!SSL_CTX_load_verify_locations(ctx, "ca-cert.pem", NULL)) {
 		ERR_print_errors_fp(stderr);
 		/* not fatal for this assignment, but warn */
 	}
