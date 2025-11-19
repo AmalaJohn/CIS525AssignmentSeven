@@ -253,7 +253,11 @@ int main(int argc, char **argv)
 									snprintf(entry1->username, MAX, "%s", payload);
 									entry1->is_server = 1;
 									entry1->client_port = htons(port);
-									/* preserve your original approach but use stored client_ip */
+									
+									fprintf(stderr, "📡 Registered chat server: %s at %s:%d\n",
+										entry1->username,
+										inet_ntoa(entry1->client_ip),
+										port);
 								}
 							}
 							else if (strncmp(command, "CHAT", 4) == 0) {
