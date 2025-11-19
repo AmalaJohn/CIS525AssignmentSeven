@@ -249,7 +249,7 @@ int main(int argc, char **argv)
 	}
 
 	char buf[MAX];
-	snprintf(buf, MAX, "REGISTER:%s:%d\n", CHAT_ROOM_NAME, CHAT_SERV_TCP_PORT);
+	snprintf(buf, MAX, "USERNAME:%s:%d\n", CHAT_ROOM_NAME, CHAT_SERV_TCP_PORT);
 
 	SSL *dir_ssl = SSL_new(dir_ctx);
     if (!dir_ssl) {
