@@ -265,6 +265,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
+
     /* Verify Directory Server certificate CN = "Directory Server" */
     if (!verify_expected_subject(dir_ssl, "Directory Server")) {
         fprintf(stderr, "Directory Server certificate CN mismatch\n");
@@ -491,10 +492,11 @@ int main(int argc, char **argv)
 }
 
 /* End of processing for this client */
-}  // ← closes LIST_FOREACH_SAFE loop’s inner “if (FD_ISSET)” block
-
-} // ← closes LIST_FOREACH_SAFE loop
-
+}
+}
+}
+}
+ // ← closes LIST_FOREACH_SAFE loop
 } else if (ready < 0) {
 
     if (errno == EINTR) {
