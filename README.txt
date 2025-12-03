@@ -24,19 +24,19 @@ Setup Instructions
 ==================================================================
 Running Instructions
 
-1. Start the Directory Server by using its hard-coded port number, certificate, and key:
-./directoryServer5 50967 Directory_Server-cert.pem Directory_Server-key.pem ca-cert.pem
+1. Start the server directory in the background: ./directoryServer5 &
 
-2. Start a Chat Server. Replace <port> with port number of choice and <Room Name> with a supported chat room topic:
+2. Start a Chat Server. Replace <port> with port number of choice and <Room Name> with a supported chat room topic(see above):
 ./chatServer5 "<Room Name>" <port>
 
-3. Start the Chat Client with the Directory Server's IP and port number:
-./chatClient5 <Directory Server IP> 50967 ca-cert.pem
+3. Start the client on the same or another host in the foreground: ./chatClient2
 
 4. Connect to a chat room. The chat client will ask for ServerName, ServerIP, and ServerPort. Enter them in this format:
 <Room Name>,<Chat Server IP>,<Chat Server Port>
 
 Then you are set up to chat with others in the room!
+
+5.Remember to kill the server before logging off.
 
 ==================================================================
 Certificate Files
