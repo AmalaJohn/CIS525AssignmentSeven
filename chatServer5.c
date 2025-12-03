@@ -492,8 +492,7 @@ int main(int argc, char **argv)
 }
 
 /* End of processing for this client */
-}
-}
+
 }
 }
  // ← closes LIST_FOREACH_SAFE loop
@@ -506,7 +505,7 @@ int main(int argc, char **argv)
         break;
     }
 }
-
+}
 /* select() == 0 will never happen because no timeout */
 } // ← closes the big for(;;) server loop
 
@@ -525,4 +524,4 @@ EVP_cleanup();
 
 return EXIT_SUCCESS;
 }
-
+}
