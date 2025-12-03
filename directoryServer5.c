@@ -1,10 +1,3 @@
-/* directoryServer5.c
- * Minimal changes from Assignment4: add TLS (OpenSSL TLS 1.3), non-blocking sockets,
- * SSL_read/SSL_write, and store client IP at accept time.
- *
- * Preserves original flow and variable names wherever possible.
- */
-
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -243,7 +236,7 @@ int main(int argc, char **argv)
 							if (strncmp(command, "USERNAME",8) == 0) {
 								if (username_exists(payload)) {
 									const char *msg = "ERROR: Username already taken\n";
-									SSL_write(entry1->ssl, msg, strlen(msg));
+									SSL_write(entry1->ssl, msg, strnlen(msg));
 									SSL_shutdown(entry1->ssl);
 									SSL_free(entry1->ssl);
 									close(entry1->socketfd);
@@ -296,11 +289,11 @@ int main(int argc, char **argv)
 								}
 
 								/* write only the used portion */
-								SSL_write(entry1->ssl, response, strlen(response));
+								SSL_write(entry1->ssl, response, strnlen(response));
 							}	
 							else {
 								const char *msg = "Incorrect command\n";
-								SSL_write(entry1->ssl, msg, strlen(msg));
+								SSL_write(entry1->ssl, msg, strnlen(msg));
 							}
 						}
 					}
