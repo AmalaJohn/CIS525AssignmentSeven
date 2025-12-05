@@ -392,36 +392,32 @@ int main(int argc, char **argv)
 					int nread = tls_read_safe(entry1->ssl, buf, MAX);
 
                                         if (nread == -2) {
-                                                /* SSL wants more IO, not fatal; try again later */
-                                                continue;
-                                        } else if (nread == 0) {
-                                                /* Clean shutdown from client */
-                                                if (entry1->username[0] != '\0') {
-                                                        char msg[MAX];
-                                                        snprintf(msg, MAX, "%s has left the chat.\n", entry1->username);
-                                                        struct client *other;
-                                                        LIST_FOREACH(other, &clients, entries) {
-                                                                if (other != entry1 && other->username[0] != '\0')
-                                                                        tls_write_safe(other->ssl, msg, strnlen(msg, MAX));
-                                                        }
+                                            // non-fatal, try later
+                                            continue;
+                                        }
+                                        else if (nread == 0 || nread == -1) {
+                                            // Zero = clean TLS shutdown
+                                            // -1 often means client closed the TCP socket without TLS close_notify
+                                            if (entry1->username[0] != '\0') {
+                                                char msg[MAX];
+                                                snprintf(msg, MAX, "%s has left the chat.\n", entry1->username);
+
+                                                struct client *other;
+                                                LIST_FOREACH(other, &clients, entries) {
+                                                    if (other != entry1 && other->username[0] != '\0') {
+                                                        tls_write_safe(other->ssl, msg, strnlen(msg, MAX));
+                                                    }
                                                 }
+                                            }
 
-                                                SSL_shutdown(entry1->ssl);
-                                                SSL_free(entry1->ssl);
-                                                close(entry1->socketfd);
+                                            SSL_shutdown(entry1->ssl);
+                                            SSL_free(entry1->ssl);
+                                            close(entry1->socketfd);
 
-                                                LIST_REMOVE(entry1, entries);
-                                                free(entry1);
-                                        } else if (nread < 0) {
-                                                /* Fatal TLS error */
-                                                fprintf(stderr, "%s:%d Error reading from client (TLS)\n", __FILE__, __LINE__);
+                                            LIST_REMOVE(entry1, entries);
+                                            free(entry1);
 
-                                                SSL_shutdown(entry1->ssl);
-                                                SSL_free(entry1->ssl);
-                                                close(entry1->socketfd);
-
-                                                LIST_REMOVE(entry1, entries);
-                                                free(entry1);
+                                            continue;
                                         } else {
                                                 /* nread > 0: normal case */
                                                 if (nread < MAX) {
