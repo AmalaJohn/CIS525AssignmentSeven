@@ -1,3 +1,16 @@
+Assignment #7
+Group Members: Sebastian Alturck-Carlos, Amala John, Jacob Schmitt, Jesus Castro-Garcia, Ella Foxhoven
+==================================================================
+Supported Chat Room Topics:
+
+- General Chat
+- Gaming
+- KSU Football
+- Study Group
+- Tech Discussion
+
+==================================================================
+Setup Instructions
 
 1. Copy the files to your own directory.
 
@@ -5,12 +18,37 @@
    Also, modify the port numbers to be used to reduce the likelihood
    of conflicting with another server.
 
-3. Compile the source code using the command: make
+3. Generate Certificates and Keys by running:	./generate_certs.sh
 
-4. Start the server directory in the background: ./directoryServer2 &
+4. Compile the programs using "make".
 
-5. Start the server with chat room name and listening port: ./chatServer2 "Example Name" <PortNumber>
+==================================================================
+Running Instructions
 
-6. Start the client on the same or another host in the foreground: ./chatClient2
+1. Start the server directory in the background: ./directoryServer5 &
 
-7. Remember to kill the server before logging off.
+2. Start a Chat Server. Replace <port> with port number of choice and <Room Name> with a supported chat room topic(see above):
+./chatServer5 "<Room Name>" <port>
+
+3. Start the client on the same or another host in the foreground: ./chatClient2
+
+4. Connect to a chat room. The chat client will ask for ServerName, ServerIP, and ServerPort. Enter them in this format:
+<Room Name>,<Chat Server IP>,<Chat Server Port>
+
+Then you are set up to chat with others in the room!
+
+5.Remember to kill the server before logging off.
+
+==================================================================
+Signed Certificates:
+ca-cert.pem                   Directory_Server-cert.pem
+Gaming_Server-cert.pem        General_Chat-cert.pem
+KSU_Football-cert.pem         Study_Group-cert.pem
+Tech_Discussion-cert.pem
+
+Certificate Keys:
+ca-key.pem                   Directory_Server-key.pem
+Gaming_Server-key.pem        General_Chat-key.pem
+KSU_Football-key.pem         Study_Group-key.pem
+Tech_Discussion-key.pem
+
