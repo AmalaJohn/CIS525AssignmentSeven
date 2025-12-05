@@ -30,7 +30,7 @@ Running Instructions
 2. Start a Chat Server. Replace <port> with port number of choice and <Room Name> with a supported chat room topic(see above):
 ./chatServer5 "<Room Name>" <port>
 
-3. Start the client on the same or another host in the foreground: ./chatClient2
+3. Start the client on the same or another host in the foreground: ./chatClient5
 
 4. Connect to a chat room. The chat client will ask for ServerName, ServerIP, and ServerPort. Enter them in this format:
 <Room Name>,<Chat Server IP>,<Chat Server Port>
