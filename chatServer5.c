@@ -137,7 +137,7 @@ int verify_expected_subject(SSL *ssl, const char *expected_cn)
 
     X509_NAME_ENTRY *entry = X509_NAME_get_entry(subj, idx);
     ASN1_STRING *data = X509_NAME_ENTRY_get_data(entry);
-    strncpy(cn, (char *)ASN1_STRING_get0_data(data), sizeof(cn) - 1);
+    snprintf(cn, sizeof(cn), "%s", (const char *)ASN1_STRING_get0_data(data));
 
     X509_free(cert);
 
@@ -433,12 +433,12 @@ int main(int argc, char **argv)
                                                                 if (entry1->username[0] != '\0') {
                                                                         tls_write_safe(entry1->ssl,
                                                                                        "ERROR: Already registered.\n",
-                                                                                       strlen("ERROR: Already registered.\n"));
+                                                                                       strnlen("ERROR: Already registered.\n"));
                                                                 }
                                                                 else if (username_exists(payload)) {
                                                                         tls_write_safe(entry1->ssl,
                                                                                        "ERROR: Username already taken.\n",
-                                                                                       strlen("ERROR: Username already taken.\n"));
+                                                                                       strnlen("ERROR: Username already taken.\n"));
                                                                         SSL_shutdown(entry1->ssl);
                                                                         SSL_free(entry1->ssl);
                                                                         close(entry1->socketfd);
@@ -472,7 +472,7 @@ int main(int argc, char **argv)
     if (entry1->username[0] == '\0') {
         tls_write_safe(entry1->ssl,
                        "ERROR: Must register username first.\n",
-                       strlen("ERROR: Must register username first.\n"));
+                       strnlen("ERROR: Must register username first.\n"));
     } else {
 
         char msg[MAX];
